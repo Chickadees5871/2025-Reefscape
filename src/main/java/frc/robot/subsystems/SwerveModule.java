@@ -1,134 +1,174 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Configs;
-import frc.robot.Constants.SwerveConstants;
 
-/** An individual swerve module. */
 public class SwerveModule {
-        // Drive
-        private final SparkMax driveController;
+    //private SparkPIDController azimController;
+    private SparkClosedLoopController driveController;
+    private SparkMax driveMotor;
+    private SparkMax azimMotor;
+    private CANcoder cancoder;
+    double maxSpeed = 3;
+    boolean log = false;
+    //private RelativeEncoder encoder;
+    private DirectSwerveCommand swerveCommand;
+    PIDController anglePIDcontroller = new PIDController(0.005, 0.00, 0.00);
 
-        // Turning
-        private final SparkMax turningController;
-        private final PIDController turningPid;
+    RelativeEncoder drive_Encoder;
 
-        // CAN Coder
-        private final CANcoder canCoder;
-        private final double canCoderOffset;
+    SwerveModuleState currentState;
 
-        private SwerveModuleState state;
-        private int driveId;
 
-        /**
-         * Creates a new swerve module.
-         *
-         * @param driveId           CAN ID for the drive motor (Falcon)
-         * @param isDriveReversed   If the drive motor is reversed
-         * @param turningId         CAN ID for the turning motor (NEO)
-         * @param isTurningReversed If the turning motor is reversed
-         * @param coderId           CAN ID for the CAN coder within the swerve module
-         * @param coderOffset       The offset to get the CAN coder to true zero (NEED
-         *                          TO BE POSITIVE)
-         */
-        public SwerveModule(
-                        int driveId,
-                        boolean isDriveReversed,
-                        int turningId,
-                        boolean isTurningReversed,
-                        int coderId,
-                        double coderOffset) {
-                driveController = new SparkMax(driveId, MotorType.kBrushless);
-                this.driveId = driveId;
+    private class DirectSwerveCommand {
+        double angle;
+        double drive;
 
-                turningController = new SparkMax(turningId, MotorType.kBrushless);
-                turningController.configure(Configs.MAXSwerveModule.turningConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        public DirectSwerveCommand(double angle, double drive) {
+            this.angle = angle;
+            this.drive = drive;
 
-                turningPid = new PIDController(
-                                SwerveConstants.PID.ModuleAngle.kP,
-                                SwerveConstants.PID.ModuleAngle.kI,
-                                SwerveConstants.PID.ModuleAngle.kD);
-                turningPid.enableContinuousInput(0.0, 1.0);
-                turningPid.setTolerance(SwerveConstants.PID.ModuleAngle.kT);
+           // driveMotor.setIdleMode(IdleMode.kCoast);
+        }
+    }
+public SwerveModule(SparkMax driveMotor, SparkMax azimuthMotor, CANcoder cancoder, double offset, boolean log) {
+    this(driveMotor, azimuthMotor, cancoder, offset);
+    this.log = log;
+}
+    public SwerveModule(SparkMax driveMotor, SparkMax azimuthMotor, CANcoder cancoder, double offset) {
 
-                canCoder = new CANcoder(coderId);
+        this.driveMotor = driveMotor;
+        this.driveMotor.configure(Configs.MAXSwerveModule.drivingConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+        this.azimMotor = azimuthMotor;
+        this.azimMotor.configure(Configs.MAXSwerveModule.turningConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+        //azimController = azimMotor.getPIDController();
+        driveController = driveMotor.getClosedLoopController();
+        this.cancoder = cancoder;
 
-                this.canCoderOffset = coderOffset;
+        drive_Encoder = driveMotor.getEncoder();
+
+        // set offset to encoder
+        MagnetSensorConfigs conf = new MagnetSensorConfigs();
+
+        anglePIDcontroller.enableContinuousInput(-180, 180);
+
+        //azimMotor.getEncoder().setPositionConversionFactor(Math.PI * 2 / 13.3714);
+
+        //azimMotor.getEncoder().setPosition(-cancoder.getPosition().getValue() * Math.PI * 2 + Math.PI / 2);
+        azimMotor.setInverted(false);
+        //azimController.setP(0.4);
+        //encoder = azimuthMotor.getEncoder();
+        swerveCommand = new DirectSwerveCommand(0, 0);
+    }
+
+
+    void update() {
+
+        SwerveModuleState temp = new SwerveModuleState();
+
+        temp.speedMetersPerSecond = drive_Encoder.getVelocity();
+
+        temp.angle = Rotation2d.fromRotations( cancoder.getAbsolutePosition().getValueAsDouble() );
+
+        currentState = temp;
+    }
+
+
+
+    int counter = 0;
+
+    public void acceptMotion(SwerveModuleState state) {
+        //double theta = state.angle.getRadians();
+
+        update();
+
+        state = SwerveModuleState.optimize(state, currentState.angle);
+
+        double driveVoltage = state.speedMetersPerSecond / maxSpeed;
+        //calculateOptimalSetpoint(theta, driveVoltage, cancoder.getAbsolutePosition().getValueAsDouble());
+        var PIDval = anglePIDcontroller.calculate(cancoder.getAbsolutePosition().getValueAsDouble()*360, state.angle.getDegrees());
+        azimMotor.set(-MathUtil.clamp(PIDval, -0.5, 0.5));
+        //setReferenceAngle(swerveCommand.angle);
+        driveMotor.setVoltage(driveVoltage * 60 /*swerveCommand.drive * 60 */);
+        if( counter > 25 && log) {
+          System.out.println("target: " + state.angle.getDegrees() + " actual: " + cancoder.getAbsolutePosition().getValueAsDouble()*360 + " state: " + state.angle.getRadians() + " PIDvalue: " + PIDval);
+          counter = 0;
+        }
+        counter++;
+    }
+
+    public void setReferenceAngle(double referenceAngleRadians) {
+        //double currentAngleRadians = encoder.getPosition();
+        double currentAngleRadians = cancoder.getPosition().getValueAsDouble();
+
+
+        double currentAngleRadiansMod = currentAngleRadians % (2.0 * Math.PI);
+        if (currentAngleRadiansMod < 0.0) {
+            currentAngleRadiansMod += 2.0 * Math.PI;
         }
 
-        /**
-         * Sets the swerve module to a new state.
-         *
-         * @param state The new desired state
-         * @param log   If the Swerve Module should log there target state and current
-         *              state
-         */
-        public void setState(SwerveModuleState state) {
-                this.state = SwerveModuleState.optimize(
-                                state, Rotation2d.fromRadians(getTurningPosition() * 2 * Math.PI));
-                this.state = state;
-                driveController.set(this.state.speedMetersPerSecond / SwerveConstants.Kinematics.drivePhysicalMaxSpeed);
-                turningController.set(turningPid.calculate(
-                        getTurningPosition(), this.state.angle.getRadians() / (2 * Math.PI)));
-                
-                SmartDashboard.putNumber("" + this.driveId + " Target", this.state.angle.getRadians());
+        // The reference angle has the range [0, 2pi) but the Neo's encoder can go above
+        // that
+        double adjustedReferenceAngleRadians = referenceAngleRadians + currentAngleRadians - currentAngleRadiansMod;
+        if (referenceAngleRadians - currentAngleRadiansMod > Math.PI) {
+            adjustedReferenceAngleRadians -= 2.0 * Math.PI;
+        } else if (referenceAngleRadians - currentAngleRadiansMod < -Math.PI) {
+            adjustedReferenceAngleRadians += 2.0 * Math.PI;
         }
 
-        public SwerveModuleState getState() {
-                if (state != null)
-                        return state;
-                return new SwerveModuleState();
+        //azimController.setReference(adjustedReferenceAngleRadians, SparkMax.ControlType.kPosition);
+    }
+
+    private void calculateOptimalSetpoint(double steerAngle, double driveVoltage, double currentAngle) {
+
+        steerAngle %= (2.0 * Math.PI);
+        if (steerAngle < 0.0) {
+            steerAngle += 2.0 * Math.PI;
         }
 
-        /** Stops the swerve module. */
-        public void stop() {
-                driveController.set(0);
-                turningController.set(0);
+        double difference = steerAngle - currentAngle;
+        // Change the target angle so the difference is in the range [-pi, pi) instead
+        // of [0, 2pi)
+        if (difference >= Math.PI) {
+            steerAngle -= 2.0 * Math.PI;
+        } else if (difference < -Math.PI) {
+            steerAngle += 2.0 * Math.PI;
+        }
+        difference = steerAngle - currentAngle; // Recalculate difference
+
+        // If the difference is greater than 90 deg or less than -90 deg the drive can
+        // be inverted so the total
+        // movement of the module is less than 90 deg
+        if (difference > Math.PI / 2.0 || difference < -Math.PI / 2.0) {
+            // Only need to add 180 deg here because the target angle will be put back into
+            // the range [0, 2pi)
+            steerAngle += Math.PI;
+            driveVoltage *= -1.0;
         }
 
-        /**
-         * Gets the turning motor position in radians.
-         *
-         * @return Turning motor position
-         */
-        public double getTurningPosition() {
-                return (((canCoder.getPosition().getValueAsDouble() - canCoderOffset) % 1) + 1) % 1;
-        }
+        // Put the target angle back into the range [0, 2pi)
+        steerAngle %= (2.0 * Math.PI);
+        if (steerAngle < 0.0) {
 
-        /**
-         * Gets the turning motor position in radians in a human readable form.
-         *
-         * @return Turning motor position
-         */
-        public double getTurningPositionReadable() {
-                return Math.abs((canCoder.getPosition().getValueAsDouble() - canCoderOffset) % 1)
-                                * 2
-                                * Math.PI;
+            steerAngle += 2.0 * Math.PI;
         }
+        swerveCommand.angle = steerAngle;
+        swerveCommand.drive = driveVoltage;
+        // return swerveCommand;
 
-        public SwerveModulePosition getPosition() {
-                return new SwerveModulePosition(
-                                driveController.getEncoder().getPosition()
-                                                * SwerveConstants.Kinematics.driveRotToMeters,
-                                new Rotation2d(getTurningPosition() * 2 * Math.PI));
-        }
-
-        public void periodic() {
-                SmartDashboard.putNumber("" + this.driveId + " Current", getTurningPosition());
-        }
+    }
 }
