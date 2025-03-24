@@ -61,7 +61,22 @@ public final class Constants {
     public static final int kFrontRightTurningCanId = 7;
     public static final int kRearRightTurningCanId = 2;
 
+    
+
     public static final boolean kGyroReversed = false;
+  }
+
+  public static final class LiftConstants{
+    // SPARK MAX CAN IDs FOR ARM/INTAKE (all these numbers are bs i dunno what they are rn)
+    public static final int liftMotorLeft = 9;
+    public static final int liftMotorRight = 10;
+    public static final int algeIntake1CanId = 11;
+    public static final int algeIntake2CanId = 12;
+    public static final int coralMotorCanId = 13;
+    public static final int pivotMotor = 14;
+
+    public static final double coralPreset = 100.0;
+    public static final double alegePreset = 200.0;
   }
 
   public static final class ModuleConstants {
