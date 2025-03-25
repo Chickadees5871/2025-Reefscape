@@ -45,10 +45,12 @@ public class SwerveModule {
            // driveMotor.setIdleMode(IdleMode.kCoast);
         }
     }
-public SwerveModule(SparkMax driveMotor, SparkMax azimuthMotor, CANcoder cancoder, double offset, boolean log) {
-    this(driveMotor, azimuthMotor, cancoder, offset);
-    this.log = log;
-}
+
+    public SwerveModule(SparkMax driveMotor, SparkMax azimuthMotor, CANcoder cancoder, double offset, boolean log) {
+        this(driveMotor, azimuthMotor, cancoder, offset);
+        this.log = log;
+    }
+    
     public SwerveModule(SparkMax driveMotor, SparkMax azimuthMotor, CANcoder cancoder, double offset) {
 
         this.driveMotor = driveMotor;
@@ -77,7 +79,6 @@ public SwerveModule(SparkMax driveMotor, SparkMax azimuthMotor, CANcoder cancode
 
 
     void update() {
-
         SwerveModuleState temp = new SwerveModuleState();
 
         temp.speedMetersPerSecond = drive_Encoder.getVelocity();

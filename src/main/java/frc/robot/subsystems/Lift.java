@@ -20,8 +20,10 @@ public class Lift extends SubsystemBase{
     }
 
     public void tick(OperatorInterface oi){
-        double lMotorPos = liftMotorLeft.getAbsoluteEncoder().getPosition();
-        double rMotorPos = liftMotorLeft.getAbsoluteEncoder().getPosition();
+        double lMotorPos = liftMotorLeft.getEncoder().getPosition();
+        double rMotorPos = liftMotorLeft.getEncoder().getPosition();
+
+        System.out.println("RMOTOR " + rMotorPos + " | LMOTOR " + lMotorPos);
 
         if(oi.gunnerController.getAButton()){
             target = Constants.LiftConstants.alegePreset;
@@ -30,14 +32,14 @@ public class Lift extends SubsystemBase{
         }
 
         if(target != -999.0){
-            if(Math.abs(rMotorPos - target) < 10.0){
+            if(Math.abs(rMotorPos - target) < 0.005){
                 target = -999.0;
                 currentLiftPower = 0.0;
             }else{
                 if(rMotorPos < target){
-                    currentLiftPower = (rMotorPos/target) * 1.0;
+                    currentLiftPower = (rMotorPos/target) * 0.5;
                 }else{
-                    currentLiftPower = -(target/rMotorPos) * 1.0;
+                    currentLiftPower = -(rMotorPos / target) * 0.5;
                 }
             }
         }
@@ -48,10 +50,10 @@ public class Lift extends SubsystemBase{
             // Overrides preset movement
             target = -999.0;
         }
-        currentLiftPower = inputPower != 0 ? inputPower : currentLiftPower;
+        currentLiftPower = inputPower != 0 ? inputPower / 10.0: currentLiftPower;
         
         // One of these needs to be negative idk which one
-        liftMotorLeft.set(currentLiftPower);
-        liftMotorRight.set(-currentLiftPower);
+        liftMotorLeft.set(-currentLiftPower);
+        liftMotorRight.set(currentLiftPower);
     }
 }

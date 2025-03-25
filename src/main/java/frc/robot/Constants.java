@@ -70,13 +70,17 @@ public final class Constants {
     // SPARK MAX CAN IDs FOR ARM/INTAKE (all these numbers are bs i dunno what they are rn)
     public static final int liftMotorLeft = 9;
     public static final int liftMotorRight = 10;
-    public static final int algeIntake1CanId = 11;
-    public static final int algeIntake2CanId = 12;
-    public static final int coralMotorCanId = 13;
-    public static final int pivotMotor = 14;
+    public static final int algeIntake1CanId = 12; // ha   look    how            these         areee
+    public static final int algeIntake2CanId = 31; //   ha      at     consistant       numbers
+    public static final int coralMotorCanId = 30;
+    public static final int pivotMotor = 30;
 
-    public static final double coralPreset = 100.0;
-    public static final double alegePreset = 200.0;
+    public static final double pivotRest = 5.0;
+    public static final double pivotIntake = 4.0;
+    public static final double pivotDump = 3.0;
+
+    public static final double coralPreset = -999.0;
+    public static final double alegePreset = -999.0;
   }
 
   public static final class ModuleConstants {
