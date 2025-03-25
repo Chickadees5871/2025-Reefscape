@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -12,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.LiftCommand;
+import frc.robot.subsystems.AutoSystem;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Lift;
 import frc.robot.subsystems.OperatorInterface;
@@ -22,6 +25,7 @@ public class RobotContainer {
   public Intake intake;
   public Lift lift;
   public OperatorInterface oi;
+  public AutoSystem autoSystem;
   public final DriveCommand driveCommand;
   public final IntakeCommand intakeCommand;
   public final LiftCommand liftCommand;
@@ -31,6 +35,7 @@ public class RobotContainer {
     swerveDrive = new SwerveDrive();
     intake = new Intake();
     lift = new Lift();
+    autoSystem = new AutoSystem();
     oi = new OperatorInterface();
     driveCommand = new DriveCommand(oi, swerveDrive);
     intakeCommand = new IntakeCommand(oi, intake);
@@ -52,6 +57,6 @@ public class RobotContainer {
 
   // Auto Code
   public Command getAutonomousCommand() {
-    return null;
+    return new PathPlannerAuto("2025Auto");
   }
 }

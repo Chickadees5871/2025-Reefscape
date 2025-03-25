@@ -170,6 +170,9 @@ public class SwerveModule {
         swerveCommand.angle = steerAngle;
         swerveCommand.drive = driveVoltage;
         // return swerveCommand;
+    }
 
+    public double getEncoderPosition(){
+        return cancoder.getPosition().getValueAsDouble();
     }
 }

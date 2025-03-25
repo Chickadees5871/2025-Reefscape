@@ -1,27 +1,41 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class SwerveDrive extends SubsystemBase {
     private SwerveModule[] modules;
+    private SwerveModulePosition[] positions;
+    private SwerveModuleState[] states;
     private SwerveDriveKinematics kinematics;
-    private AHRS navX;
     private PIDController controller;
     private double setpoint = 0;
+    private Pigeon2 gyro;
+    private final SwerveDrivePoseEstimator poseEst;
+    private Pose2d pose;
+
 
     public SwerveDrive() {
         modules = new SwerveModule[4];
+        positions = new SwerveModulePosition[4];
+        states = new SwerveModuleState[4];
         // fl
         modules[0] = new SwerveModule(
                 new SparkMax(5, MotorType.kBrushless),
@@ -47,20 +61,43 @@ public class SwerveDrive extends SubsystemBase {
                 new Translation2d(15 * 2.54 / 100, -15 * 2.54 / 100),
                 new Translation2d(-15 * 2.54 / 100, 15 * 2.54 / 100),
                 new Translation2d(-15 * 2.54 / 100, -15 * 2.54 / 100));
-        navX = new AHRS(NavXComType.kMXP_SPI);
         controller = new PIDController(.01, 0, 0);
+
+        gyro = new Pigeon2(41);
+       
+        // Init pose
+        poseEst =
+        new SwerveDrivePoseEstimator(
+            kinematics,
+            gyro.getRotation2d(), 
+            positions,
+            new Pose2d());
+    }
+
+    private void updateModules(){
+        for(int i = 0; i < 4; i++){
+            positions[i] = new SwerveModulePosition(modules[i].getEncoderPosition(), gyro.getRotation2d());
+            states[i] = modules[i].currentState;
+        }
+    }
+
+    @Override
+    public void periodic(){
+        updateModules();
+        // Update the pose
+        pose = poseEst.update(gyro.getRotation2d(), positions);
     }
 
     public void accept(ChassisSpeeds fieldCentricChassisSpeeds) {
         var chassis = ChassisSpeeds.fromFieldRelativeSpeeds(fieldCentricChassisSpeeds,
-                Rotation2d.fromDegrees(-navX.getYaw() + 180));
-        double gyro = -navX.getYaw();
+                Rotation2d.fromDegrees(-gyro.getYaw().getValueAsDouble() + 180));
+        double rotation = -gyro.getYaw().getValueAsDouble();
 
         if (chassis.vxMetersPerSecond != 0 && chassis.vyMetersPerSecond != 0
                 && chassis.omegaRadiansPerSecond == 0) {
-            chassis.omegaRadiansPerSecond = -controller.calculate(gyro, setpoint);
+            chassis.omegaRadiansPerSecond = -controller.calculate(rotation, setpoint);
         } else {
-            setpoint = gyro;
+            setpoint = rotation;
         }
         var states = kinematics.toSwerveModuleStates(chassis);
         for (int i = 0; i < 4; i++) {
@@ -72,6 +109,20 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     public void resetGyro() {
-        navX.reset();
+        gyro.reset();
     }
+
+    public Pose2d getPose2d(){
+        return pose;
+    }
+
+    public void resetPose(Pose2d val){
+        pose = val;
+    }
+
+    public ChassisSpeeds getChassisSpeeds(){
+        return kinematics.toChassisSpeeds(states);
+    }
+
+
 }
