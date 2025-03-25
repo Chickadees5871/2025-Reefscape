@@ -21,11 +21,7 @@ public class OperatorInterface extends SubsystemBase {
 
         SmartDashboard.putString("Chasis Speed", xSpeed + ", " + ySpeed + ", " + zSpeed);
 
-        return new ChassisSpeeds(
-                -Math.pow(ySpeed, 3),
-                -Math.pow(xSpeed, 3),
-
-                Math.pow(zSpeed, 3));
+        return new ChassisSpeeds( -Math.pow(ySpeed, 3), -Math.pow(xSpeed, 3), Math.pow(zSpeed, 3));
     }
 
     public static double deadzone(double val, double threshold) {
