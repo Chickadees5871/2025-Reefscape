@@ -31,8 +31,8 @@ public class AutoSystem extends SubsystemBase {
             swerveDrive::getChassisSpeeds, 
             (speeds, feedforwards) -> swerveDrive.accept(speeds),
             new PPHolonomicDriveController( 
-                    new PIDConstants(5.0, 0.0, 0.0), 
-                    new PIDConstants(5.0, 0.0, 0.0) 
+                    new PIDConstants(0.005, 0.00, 0.00), 
+                    new PIDConstants(0.005, 0.00, 0.00) 
             ),
             config, 
             () -> {
