@@ -25,9 +25,9 @@ public final class Constants {
         public static final double kMaxAngularSpeed = 2 * Math.PI; // radians per second
 
         // Chassis configuration
-        public static final double kTrackWidth = Units.inchesToMeters(23.5);
+        public static final double kTrackWidth = Units.inchesToMeters(26);
         // Distance between centers of right and left wheels on robot
-        public static final double kWheelBase = Units.inchesToMeters(27);
+        public static final double kWheelBase = Units.inchesToMeters(30);
         // Distance between front and back wheels on robot
         public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
                 new Translation2d(kWheelBase / 2, kTrackWidth / 2),
@@ -131,5 +131,15 @@ public final class Constants {
         public static final double xySpeedMultiplier = 0.5; // m/s
         public static final double turningSpeedMultiplier = 0.5; // rads/s
         public static final double slowTurningDivisor = 2;
+    }
+
+    public static final class PIDConstants {
+        public static final class ModuleAngleConstants {
+            public static final double kP = 1.5;
+            public static final double kD = 0.0;
+            public static final double kI = 0.005;
+
+            public static final double kT = 0.0005;
+        }
     }
 }

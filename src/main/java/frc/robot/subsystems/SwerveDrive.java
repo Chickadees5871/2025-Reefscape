@@ -8,11 +8,10 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -20,8 +19,6 @@ public class SwerveDrive extends SubsystemBase {
     private SwerveModule[] modules;
     private SwerveModulePosition[] positions;
     private SwerveModuleState[] states;
-
-    private SwerveDriveKinematics kinematics;
 
     private Pigeon2 gyro;
     private final SwerveDrivePoseEstimator poseEst;
@@ -54,21 +51,13 @@ public class SwerveDrive extends SubsystemBase {
                 new SparkMax(2, MotorType.kBrushless),
                 new CANcoder(51), 0.409424);
 
-
-
-        kinematics = new SwerveDriveKinematics(
-                new Translation2d(15 * 2.54 / 100, 15 * 2.54 / 100),
-                new Translation2d(15 * 2.54 / 100, -15 * 2.54 / 100),
-                new Translation2d(-15 * 2.54 / 100, 15 * 2.54 / 100),
-                new Translation2d(-15 * 2.54 / 100, -15 * 2.54 / 100));
-
         gyro = new Pigeon2(41);
 
         updateModules();
 
         // Init pose
         poseEst = new SwerveDrivePoseEstimator(
-                kinematics,
+                Constants.DriveConstants.kDriveKinematics,
                 gyro.getRotation2d(),
                 positions,
                 new Pose2d());
@@ -84,19 +73,15 @@ public class SwerveDrive extends SubsystemBase {
     @Override
     public void periodic() {
         updateModules();
+        SmartDashboard.putNumber("Rotation", gyro.getRotation2d().getDegrees());
         pose = poseEst.update(gyro.getRotation2d(), positions);
     }
 
     public void accept(ChassisSpeeds fieldCentricChassisSpeeds) {
-        double rotation = -gyro.getYaw().getValueAsDouble()
-                + (Constants.DriveConstants.GyroReversed ? -Constants.DriveConstants.GyroOffset
-                        : Constants.DriveConstants.GyroOffset);
         ChassisSpeeds chassis = ChassisSpeeds.fromFieldRelativeSpeeds(fieldCentricChassisSpeeds,
-                Rotation2d.fromDegrees(rotation));
+                this.getRotation2d());
 
-        System.out.println(chassis);
-
-        SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassis);
+        SwerveModuleState[] states = Constants.DriveConstants.kDriveKinematics.toSwerveModuleStates(chassis);
         for (int i = 0; i < 4; i++) {
             modules[i].acceptMotion(states[i]);
         }
@@ -114,8 +99,11 @@ public class SwerveDrive extends SubsystemBase {
         pose = val;
     }
 
-    public ChassisSpeeds getChassisSpeeds() {
-        return kinematics.toChassisSpeeds(states);
+    public Rotation2d getRotation2d() {
+        return Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble() + 180);
     }
 
+    public ChassisSpeeds getChassisSpeeds() {
+        return Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(states);
+    }
 }

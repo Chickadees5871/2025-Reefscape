@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.IntakeCommand;
-import frc.robot.commands.LiftCommand;
 import frc.robot.subsystems.AutoSystem;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Lift;
@@ -24,7 +23,6 @@ import frc.robot.subsystems.SwerveDrive;
 public class RobotContainer {
     public final DriveCommand driveCommand;
     public final IntakeCommand intakeCommand;
-    public final LiftCommand liftCommand;
 
     public SwerveDrive swerveDrive;
     public Intake intake;
@@ -42,20 +40,18 @@ public class RobotContainer {
 
         driveCommand = new DriveCommand(oi, swerveDrive);
         intakeCommand = new IntakeCommand(oi, intake);
-        liftCommand = new LiftCommand(oi, lift);
 
         // Sets Keybinds
         configureBindings();
     }
 
     private void configureBindings() {
-        Trigger gyroReset = new JoystickButton(oi.driveController, XboxController.Button.kLeftBumper.value);
+        Trigger gyroReset = new JoystickButton(oi.driveController, XboxController.Button.kStart.value);
 
         // When gyroreset pressed reset the swerve drive gyros
         gyroReset.onTrue(new InstantCommand(() -> {
             swerveDrive.resetGyro();
         }));
-
     }
 
     // Auto Code

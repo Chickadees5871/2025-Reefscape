@@ -4,6 +4,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
 public class OperatorInterface extends SubsystemBase {
     public XboxController driveController;
@@ -21,7 +22,9 @@ public class OperatorInterface extends SubsystemBase {
 
         SmartDashboard.putString("Chasis Speed", xSpeed + ", " + ySpeed + ", " + zSpeed);
 
-        return new ChassisSpeeds( -Math.pow(ySpeed, 3), -Math.pow(xSpeed, 3), Math.pow(zSpeed, 3));
+        return new ChassisSpeeds(-ySpeed * Constants.DriveConstants.kMaxSpeedMetersPerSecond,
+                -xSpeed * Constants.DriveConstants.kMaxSpeedMetersPerSecond,
+                zSpeed * Constants.DriveConstants.kMaxSpeedMetersPerSecond);
     }
 
     public static double deadzone(double val, double threshold) {

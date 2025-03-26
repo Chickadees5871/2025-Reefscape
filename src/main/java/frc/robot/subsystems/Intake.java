@@ -28,7 +28,6 @@ public class Intake extends SubsystemBase {
     }
 
     public void tick(OperatorInterface oi){
-        System.out.println("PIVOT POS: " + pivotMotor.getEncoder().getPosition());
         // Fat ball 
         
         double ballPower = oi.gunnerController.getRightBumperButton() ? 1.0 : (oi.gunnerController.getLeftBumperButton() ? -1.0 : 0.0);

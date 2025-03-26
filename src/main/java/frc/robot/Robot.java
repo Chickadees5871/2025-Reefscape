@@ -59,7 +59,6 @@ public class Robot extends TimedRobot {
         }
         robotContainer.driveCommand.schedule();
         robotContainer.intakeCommand.schedule();
-        robotContainer.liftCommand.schedule();
     }
 
     @Override
