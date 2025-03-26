@@ -37,7 +37,7 @@ public class RobotContainer {
         swerveDrive = new SwerveDrive();
         intake = new Intake();
         lift = new Lift();
-        autoSystem = new AutoSystem();
+        //autoSystem = new AutoSystem(swerveDrive);
         oi = new OperatorInterface();
 
         driveCommand = new DriveCommand(oi, swerveDrive);
@@ -60,6 +60,7 @@ public class RobotContainer {
 
     // Auto Code
     public Command getAutonomousCommand() {
-        return new PathPlannerAuto("2025Auto");
+        return null;
+        //return new PathPlannerAuto("2025Auto");
     }
 }

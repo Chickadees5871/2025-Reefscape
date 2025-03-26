@@ -4,18 +4,23 @@ import java.io.ObjectInputFilter.Config;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
-public class Intake extends SubsystemBase{
+public class Intake extends SubsystemBase {
     private SparkMax intakeMotor1;
     private SparkMax intakeMotor2;
     private SparkMax coralMotor;
     private SparkMax pivotMotor;
 
+    private PIDController pivotController;
+
+
     private double pivotPower = 0.0;
     
     public Intake(){
+        pivotController = new PIDController(0.005, 0, 0);
         intakeMotor1 = new SparkMax(Constants.LiftConstants.algeIntake1CanId, MotorType.kBrushless);
         intakeMotor2 = new SparkMax(Constants.LiftConstants.algeIntake2CanId, MotorType.kBrushless);
         coralMotor = new SparkMax(Constants.LiftConstants.coralMotorCanId, MotorType.kBrushless);
@@ -24,7 +29,8 @@ public class Intake extends SubsystemBase{
 
     public void tick(OperatorInterface oi){
         System.out.println("PIVOT POS: " + pivotMotor.getEncoder().getPosition());
-        // Fat ball intake
+        // Fat ball 
+        
         double ballPower = oi.gunnerController.getRightBumperButton() ? 1.0 : (oi.gunnerController.getLeftBumperButton() ? -1.0 : 0.0);
 
         intakeMotor1.set(ballPower);
@@ -58,14 +64,16 @@ public class Intake extends SubsystemBase{
     public void pivotGoTo(double pos){
         double currentPos = pivotMotor.getEncoder().getPosition();
 
-        if(Math.abs(currentPos - pos) < 0.005){
-            pivotPower = 0.0;
-        }else{
-            if(currentPos < pos){
-                pivotPower = (currentPos/pos) * 0.5;
-            }else{
-                pivotPower = -(currentPos / pos) * 0.5;
-            }
-        }
+        // if(Math.abs(currentPos - pos) < 0.005){
+        //     pivotPower = 0.0;
+        // }else{
+        //     if(currentPos < pos){
+        //         pivotPower = (currentPos/pos) * 0.5;
+        //     }else{
+        //         pivotPower = -(currentPos / pos) * 0.5;
+        //     }
+        // }
+        pivotPower = pivotController.calculate(currentPos, pos);
+
     }
 }

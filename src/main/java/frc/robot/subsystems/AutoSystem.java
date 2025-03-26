@@ -12,9 +12,9 @@ public class AutoSystem extends SubsystemBase {
 
     private SwerveDrive swerveDrive;
 
-    public AutoSystem() {
+    public AutoSystem(SwerveDrive swerveDrive) {
 
-    swerveDrive = new SwerveDrive();
+    this.swerveDrive = swerveDrive;
 
     RobotConfig config;
     try{
@@ -43,7 +43,7 @@ public class AutoSystem extends SubsystemBase {
             }
             return false;
             },
-            this // Reference to this subsystem to set requirements
+            this
     );
     }
   }

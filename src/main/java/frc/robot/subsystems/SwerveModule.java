@@ -4,6 +4,8 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -48,13 +50,21 @@ public class SwerveModule {
 
     public void acceptMotion(SwerveModuleState state) {
         UpdateCurrentState();
-        state.optimize(currentState.angle);
+        /*state.optimize(currentState.angle);
 
         var PIDval = anglePIDcontroller.calculate(cancoder.getAbsolutePosition().getValueAsDouble() * 360,
                 state.angle.getDegrees());
         azimMotor.set(anglePIDcontroller.calculate(cancoder.getAbsolutePosition().getValueAsDouble() * 360,
                 state.angle.getDegrees()));
-        driveMotor.set(state.speedMetersPerSecond / maxSpeed);
+        driveMotor.set(state.speedMetersPerSecond / maxSpeed);*/
+        state = SwerveModuleState.optimize(state, currentState.angle);
+
+        double driveVoltage = state.speedMetersPerSecond / maxSpeed;
+        //calculateOptimalSetpoint(theta, driveVoltage, cancoder.getAbsolutePosition().getValueAsDouble());
+        var PIDval = anglePIDcontroller.calculate(cancoder.getAbsolutePosition().getValueAsDouble()*360, state.angle.getDegrees());
+        azimMotor.set(-MathUtil.clamp(PIDval, -0.5, 0.5));
+        //setReferenceAngle(swerveCommand.angle);
+        driveMotor.setVoltage(driveVoltage * 60 /*swerveCommand.drive * 60 */);
         if (log)
             System.out.println("target: " + state.angle.getDegrees() + " actual: "
                     + cancoder.getAbsolutePosition().getValueAsDouble() * 360 + " state: " + state.angle.getRadians()

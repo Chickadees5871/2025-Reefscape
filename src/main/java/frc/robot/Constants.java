@@ -69,7 +69,7 @@ public final class Constants {
         public static final int liftMotorRight = 10;
         public static final int algeIntake1CanId = 12; // ha look how these areee
         public static final int algeIntake2CanId = 31; // ha at consistant numbers
-        public static final int coralMotorCanId = 30;
+        public static final int coralMotorCanId = 32;
         public static final int pivotMotor = 30;
 
         public static final double pivotRest = 5.0;

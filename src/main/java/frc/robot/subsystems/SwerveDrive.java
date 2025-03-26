@@ -54,6 +54,8 @@ public class SwerveDrive extends SubsystemBase {
                 new SparkMax(2, MotorType.kBrushless),
                 new CANcoder(51), 0.409424);
 
+
+
         kinematics = new SwerveDriveKinematics(
                 new Translation2d(15 * 2.54 / 100, 15 * 2.54 / 100),
                 new Translation2d(15 * 2.54 / 100, -15 * 2.54 / 100),
@@ -61,6 +63,8 @@ public class SwerveDrive extends SubsystemBase {
                 new Translation2d(-15 * 2.54 / 100, -15 * 2.54 / 100));
 
         gyro = new Pigeon2(41);
+
+        updateModules();
 
         // Init pose
         poseEst = new SwerveDrivePoseEstimator(
@@ -89,6 +93,8 @@ public class SwerveDrive extends SubsystemBase {
                         : Constants.DriveConstants.GyroOffset);
         ChassisSpeeds chassis = ChassisSpeeds.fromFieldRelativeSpeeds(fieldCentricChassisSpeeds,
                 Rotation2d.fromDegrees(rotation));
+
+        System.out.println(chassis);
 
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassis);
         for (int i = 0; i < 4; i++) {
