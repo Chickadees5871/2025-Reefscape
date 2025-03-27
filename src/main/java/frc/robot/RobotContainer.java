@@ -4,119 +4,91 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.PS4Controller.Button;
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.OIConstants;
-import frc.robot.subsystems.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import java.util.List;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-/*
- * This class is where the bulk of the robot should be declared.  Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls).  Instead, the structure of the robot
- * (including subsystems, commands, and button mappings) should be declared here.
- */
+import frc.robot.commands.DriveCommand;
+import frc.robot.commands.IntakeCommand;
+import frc.robot.subsystems.AutoSystem;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Lift;
+import frc.robot.subsystems.OperatorInterface;
+import frc.robot.subsystems.Pivot;
+import frc.robot.subsystems.SwerveDrive;
+
 public class RobotContainer {
-  // The robot's subsystems
-  private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+    public final DriveCommand driveCommand;
+    public final IntakeCommand intakeCommand;
 
-  // The driver's controller
-  XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
+    public SwerveDrive swerveDrive;
+    public Intake intake;
+    public Lift lift;
+    public Pivot pivot;
+    public OperatorInterface oi;
+    public AutoSystem autoSystem;
 
-  /**
-   * The container for the robot. Contains subsystems, OI devices, and commands.
-   */
-  public RobotContainer() {
-    // Configure the button bindings
-    configureButtonBindings();
+    public RobotContainer() {
+        // Initialize the subsystems
+        swerveDrive = new SwerveDrive();
+        intake = new Intake();
+        lift = new Lift();
+        pivot = new Pivot();
+        // autoSystem = new AutoSystem(swerveDrive);
+        oi = new OperatorInterface();
 
-    // Configure default commands
-    m_robotDrive.setDefaultCommand(
-        // The left stick controls translation of the robot.
-        // Turning is controlled by the X axis of the right stick.
-        new RunCommand(
-            () -> m_robotDrive.drive(
-                -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
-                true),
-            m_robotDrive));
-  }
+        driveCommand = new DriveCommand(oi, swerveDrive);
+        intakeCommand = new IntakeCommand(oi, intake);
 
-  /**
-   * Use this method to define your button->command mappings. Buttons can be
-   * created by
-   * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its
-   * subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling
-   * passing it to a
-   * {@link JoystickButton}.
-   */
-  private void configureButtonBindings() {
-    new JoystickButton(m_driverController, Button.kR1.value)
-        .whileTrue(new RunCommand(
-            () -> m_robotDrive.setX(),
-            m_robotDrive));
-  }
+        lift.setHomeState();
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  public Command getAutonomousCommand() {
-    // Create config for trajectory
-    TrajectoryConfig config = new TrajectoryConfig(
-        AutoConstants.kMaxSpeedMetersPerSecond,
-        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-        // Add kinematics to ensure max speed is actually obeyed
-        .setKinematics(DriveConstants.kDriveKinematics);
+        // Sets Keybinds
+        configureBindings();
+    }
 
-    // An example trajectory to follow. All units in meters.
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
-        config);
+    private void configureBindings() {
 
-    var thetaController = new ProfiledPIDController(
-        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+        Trigger gyroReset = new JoystickButton(oi.driveController, XboxController.Button.kStart.value);
+        Trigger rest = new JoystickButton(oi.gunnerController, XboxController.Button.kX.value);
+        Trigger level1 = new JoystickButton(oi.gunnerController, XboxController.Button.kA.value);
+        Trigger level2 = new JoystickButton(oi.gunnerController, XboxController.Button.kB.value);
+        Trigger intakePos = new JoystickButton(oi.gunnerController, XboxController.Button.kY.value);
+        Trigger coralIn = new Trigger(() -> oi.gunnerController.getRightTriggerAxis() > 0.1);
+        Trigger coralOut = new Trigger(() -> oi.gunnerController.getLeftTriggerAxis() > 0.1);
+        Trigger alegaIn = new JoystickButton(oi.gunnerController, XboxController.Button.kRightBumper.value);
+        Trigger alegaOut = new JoystickButton(oi.gunnerController, XboxController.Button.kLeftBumper.value);
 
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        exampleTrajectory,
-        m_robotDrive::getPose, // Functional interface to feed supplier
-        DriveConstants.kDriveKinematics,
+        // When gyroreset pressed reset the swerve drive gyros
+        gyroReset.onTrue(new InstantCommand(() -> {
+            swerveDrive.resetGyro();
+        }));
 
-        // Position controllers
-        new PIDController(AutoConstants.kPXController, 0, 0),
-        new PIDController(AutoConstants.kPYController, 0, 0),
-        thetaController,
-        m_robotDrive::setModuleStates,
-        m_robotDrive);
+        rest.onTrue(lift.moveToSetpoint(Constants.LiftConstants.level0)
+                .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotRest)));
 
-    // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
 
-    // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
-  }
+        coralIn.whileTrue(intake.intakeCoralIn());
+        coralOut.whileTrue(intake.intakeCoralOut());
+
+        alegaIn.whileTrue(intake.intakeAlgea());
+        alegaOut.whileTrue(intake.outtakeAlega());
+
+        alegaOut.and(alegaIn.whileFalse(intake.restAlega()));
+        
+        level1.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotScore).onlyIf(intake::notHasAlgea)
+                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level1)));
+        level2.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotScore).onlyIf(intake::notHasAlgea)
+                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level2)));
+        intakePos.onTrue(lift.moveToSetpoint(Constants.LiftConstants.liftIntake).andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake)));
+    }
+
+    // Auto Code
+    public Command getAutonomousCommand() {
+        return null;
+        // return new PathPlannerAuto("2025Auto");
+    }
 }
