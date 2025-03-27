@@ -6,6 +6,7 @@ package frc.robot;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -64,25 +65,27 @@ public class RobotContainer {
         }));
 
         rest.onTrue(lift.moveToSetpoint(Constants.LiftConstants.level0)
-                .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotRest)).finallyDo(() -> {System.out.println("Reset Complete");}));
+                .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotRest)));
 
-        coralIn.whileTrue(intake.intakeCoralIn().finallyDo(() -> {System.out.println("Coral Intake Complete");}));
-        coralOut.whileTrue(intake.intakeCoralOut().finallyDo(() -> {System.out.println("Coral Outtake Complete");}));
+        coralIn.whileTrue(intake.intakeCoralIn());
+        coralOut.whileTrue(intake.intakeCoralOut());
 
-        alegaIn.whileTrue(intake.intakeAlgea().finallyDo(() -> {System.out.println("Algea Intake Complete");}));
-        alegaOut.whileTrue(intake.outtakeAlega().finallyDo(() -> {System.out.println("Algea Outak Complete");}));
+        alegaIn.whileTrue(intake.intakeAlgea());
+        alegaOut.whileTrue(intake.outtakeAlega());
 
         level1.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotScore).onlyIf(intake::notHasAlgea).withTimeout(1)
-                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level1)).finallyDo(() -> {System.out.println("Level 1 Complete");}));
+                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level1)));
         level2.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotScore).onlyIf(intake::notHasAlgea).withTimeout(1)
-                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level2)).finallyDo(() -> {System.out.println("Level 2 Complete");}));
+                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level2)));
         intakePos.onTrue(lift.moveToSetpoint(Constants.LiftConstants.liftIntake)
-                .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake)).finallyDo(() -> {System.out.println("Level in Complete");}));
+                .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake)));
     }
 
     // Auto Code
     public Command getAutonomousCommand() {
-        return null;
+        return new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(-1.0, 0.0, 0.0))).repeatedly()
+                .withTimeout(0.75)
+                .andThen(new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(0.0, 0.0, 0.0))));
         // return new PathPlannerAuto("2025Auto");
     }
 }

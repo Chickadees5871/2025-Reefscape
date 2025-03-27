@@ -18,7 +18,6 @@ public class Pivot extends SubsystemBase {
     private PIDController pivotController;
 
     private double pivotPower = 0.0;
-    private double rodPower = 0.0;
 
     private final double kFF = 0.45;
     private final double kFFCoral = 0.85;

@@ -17,8 +17,6 @@ import frc.robot.Constants;
 
 public class SwerveDrive extends SubsystemBase {
     private SwerveModule[] modules;
-    private SwerveModulePosition[] positions;
-    private SwerveModuleState[] states;
 
     private Pigeon2 gyro;
     private final SwerveDrivePoseEstimator poseEst;
@@ -27,8 +25,6 @@ public class SwerveDrive extends SubsystemBase {
 
     public SwerveDrive() {
         modules = new SwerveModule[4];
-        positions = new SwerveModulePosition[4];
-        states = new SwerveModuleState[4];
 
         // fl
         modules[0] = new SwerveModule(
@@ -53,28 +49,18 @@ public class SwerveDrive extends SubsystemBase {
 
         gyro = new Pigeon2(41);
 
-        updateModules();
-
         // Init pose
         poseEst = new SwerveDrivePoseEstimator(
                 Constants.DriveConstants.kDriveKinematics,
                 gyro.getRotation2d(),
-                positions,
+                getPosisions(),
                 new Pose2d());
-    }
-
-    private void updateModules() {
-        for (int i = 0; i < 4; i++) {
-            positions[i] = new SwerveModulePosition(modules[i].getRotation(), gyro.getRotation2d());
-            states[i] = modules[i].getState();
-        }
     }
 
     @Override
     public void periodic() {
-        updateModules();
         SmartDashboard.putNumber("Rotation", gyro.getRotation2d().getDegrees());
-        pose = poseEst.update(gyro.getRotation2d(), positions);
+        pose = poseEst.update(gyro.getRotation2d(), getPosisions());
     }
 
     public void accept(ChassisSpeeds fieldCentricChassisSpeeds) {
@@ -104,6 +90,20 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     public ChassisSpeeds getChassisSpeeds() {
-        return Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(states);
+        return Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(getStates());
+    }
+
+    public SwerveModuleState[] getStates() {
+        return new SwerveModuleState[] {
+            modules[0].getState(), modules[1].getState(),
+            modules[2].getState(), modules[3].getState()
+        };
+    }
+
+    public SwerveModulePosition[] getPosisions() {
+        return new SwerveModulePosition[] {
+            modules[0].getPosition(), modules[1].getPosition(),
+            modules[2].getPosition(), modules[3].getPosition() 
+        };
     }
 }
