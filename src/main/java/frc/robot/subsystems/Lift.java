@@ -24,10 +24,7 @@ public class Lift extends SubsystemBase {
         liftRightMotor = new SparkMax(Constants.LiftConstants.liftMotorRight, MotorType.kBrushless);
     }
 
-    public void periodic(){
-        SmartDashboard.putNumber("ELEVATOR POS", liftLeftMotor.getEncoder().getPosition());
-        SmartDashboard.putNumber("Lift Setpoint", liftController.getSetpoint());
-
+    public void periodic() {
         double output = clamp(liftController.calculate(liftLeftMotor.getEncoder().getPosition()), -0.5, 0.5);
 
         if(liftController.getSetpoint() > 80){
