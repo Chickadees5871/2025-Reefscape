@@ -5,6 +5,9 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -12,67 +15,78 @@ public class Intake extends SubsystemBase {
     private SparkMax intakeMotor1;
     private SparkMax intakeMotor2;
     private SparkMax coralMotor;
-    private SparkMax pivotMotor;
 
-    private PIDController pivotController;
+    private double rodPower = 0.0;
+    private double ballPower = 0.0;
 
-
-    private double pivotPower = 0.0;
+    private boolean hasAlgea = false;
     
     public Intake(){
-        pivotController = new PIDController(0.005, 0, 0);
         intakeMotor1 = new SparkMax(Constants.LiftConstants.algeIntake1CanId, MotorType.kBrushless);
         intakeMotor2 = new SparkMax(Constants.LiftConstants.algeIntake2CanId, MotorType.kBrushless);
         coralMotor = new SparkMax(Constants.LiftConstants.coralMotorCanId, MotorType.kBrushless);
-        pivotMotor = new SparkMax(Constants.LiftConstants.pivotMotor, MotorType.kBrushless); 
     }
 
-    public void tick(OperatorInterface oi){
-        // Fat ball 
-        
-        double ballPower = oi.gunnerController.getRightBumperButton() ? 1.0 : (oi.gunnerController.getLeftBumperButton() ? -1.0 : 0.0);
-
-        intakeMotor1.set(ballPower);
-        intakeMotor2.set(-ballPower);
-        
-        // Retrive states for the rod shaft shooter
-        double rodPowerPositive = oi.gunnerController.getRightTriggerAxis();
-        double rodPowerNegative = -oi.gunnerController.getLeftTriggerAxis();
-
-        double rodPower = rodPowerPositive - rodPowerNegative;
-
-        coralMotor.set(rodPower);
-
-        // Pivot controls
-        /*if(rodPowerPositive > rodPowerNegative){
-            pivotGoTo(Constants.LiftConstants.pivotIntake);
-        }else if(rodPowerPositive < rodPowerNegative){
-            pivotGoTo(Constants.LiftConstants.pivotDump);
-        }else{
-            pivotGoTo(Constants.LiftConstants.pivotRest);
-        }*/ 
-
-        if(oi.gunnerController.getRightY() != 0){
-            pivotPower = oi.gunnerController.getRightY();
+    public void periodic(){
+        if (hasAlgea && ballPower == 0.0) {
+            intakeMotor1.set(0.05);
+            intakeMotor2.set(-0.05);
+        }
+        else {
+            intakeMotor1.set(ballPower);
+            intakeMotor2.set(-ballPower);
         }
         
-
-        pivotMotor.set(pivotPower);
+        coralMotor.set(rodPower);
     }
 
-    public void pivotGoTo(double pos){
-        double currentPos = pivotMotor.getEncoder().getPosition();
+    private void intakeCoral(){
+        rodPower = 0.5;
+    }
 
-        // if(Math.abs(currentPos - pos) < 0.005){
-        //     pivotPower = 0.0;
-        // }else{
-        //     if(currentPos < pos){
-        //         pivotPower = (currentPos/pos) * 0.5;
-        //     }else{
-        //         pivotPower = -(currentPos / pos) * 0.5;
-        //     }
-        // }
-        pivotPower = pivotController.calculate(currentPos, pos);
+    private void outtakeCoral(){
+        rodPower = -0.5;
+    }
 
+    private void noCoral(){
+        rodPower = 0.0;
+    }
+
+    private void intakeBall() {
+        ballPower = 0.5;
+        hasAlgea = true;
+    }
+
+    private void outtakeBall() {
+        ballPower = -0.5;
+        hasAlgea = false;
+    }
+
+    public void restBall(){
+        ballPower = 0.0;
+    }
+
+    public Command intakeCoralIn(){
+        return new InstantCommand(() -> this.intakeCoral()).repeatedly().finallyDo(() -> this.noCoral());
+    }
+
+    public Command intakeCoralOut(){
+        return new InstantCommand(() -> this.outtakeCoral()).repeatedly().finallyDo(() -> this.noCoral());
+    }
+
+    public Command intakeAlgea(){
+        return new InstantCommand(() -> this.intakeBall());
+    }
+
+    public Command restAlega(){
+        return new InstantCommand(() -> this.restBall());
+    }
+
+    public Command outtakeAlega(){
+        return new InstantCommand(() -> this.outtakeBall()).repeatedly().finallyDo(() -> this.restBall());
+    }
+
+    public boolean notHasAlgea() {
+        return !hasAlgea;
     }
 }

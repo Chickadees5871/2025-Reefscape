@@ -72,12 +72,14 @@ public final class Constants {
         public static final int coralMotorCanId = 32;
         public static final int pivotMotor = 30;
 
-        public static final double pivotRest = 5.0;
-        public static final double pivotIntake = 4.0;
-        public static final double pivotDump = 3.0;
+        public static final double pivotRest = 0.0;
+        public static final double pivotScore = -0.22;
+        public static final double pivotIntake = -0.12;
 
-        public static final double coralPreset = -999.0;
-        public static final double alegePreset = -999.0;
+        public static final double level0 = 0.0;
+        public static final double liftIntake = 15.0;
+        public static final double level1 = 20.0;
+        public static final double level2 = 50.0;
     }
 
     public static final class ModuleConstants {

@@ -16,6 +16,6 @@ public class IntakeCommand extends Command{
 
     @Override
     public void execute() {
-        intake.tick(oi);
+        //intake.tick(oi);
     }
 }

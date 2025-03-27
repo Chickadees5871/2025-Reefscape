@@ -18,6 +18,7 @@ import frc.robot.subsystems.AutoSystem;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Lift;
 import frc.robot.subsystems.OperatorInterface;
+import frc.robot.subsystems.Pivot;
 import frc.robot.subsystems.SwerveDrive;
 
 public class RobotContainer {
@@ -27,6 +28,7 @@ public class RobotContainer {
     public SwerveDrive swerveDrive;
     public Intake intake;
     public Lift lift;
+    public Pivot pivot;
     public OperatorInterface oi;
     public AutoSystem autoSystem;
 
@@ -35,28 +37,58 @@ public class RobotContainer {
         swerveDrive = new SwerveDrive();
         intake = new Intake();
         lift = new Lift();
-        //autoSystem = new AutoSystem(swerveDrive);
+        pivot = new Pivot();
+        // autoSystem = new AutoSystem(swerveDrive);
         oi = new OperatorInterface();
 
         driveCommand = new DriveCommand(oi, swerveDrive);
         intakeCommand = new IntakeCommand(oi, intake);
+
+        lift.setHomeState();
 
         // Sets Keybinds
         configureBindings();
     }
 
     private void configureBindings() {
+
         Trigger gyroReset = new JoystickButton(oi.driveController, XboxController.Button.kStart.value);
+        Trigger rest = new JoystickButton(oi.gunnerController, XboxController.Button.kX.value);
+        Trigger level1 = new JoystickButton(oi.gunnerController, XboxController.Button.kA.value);
+        Trigger level2 = new JoystickButton(oi.gunnerController, XboxController.Button.kB.value);
+        Trigger intakePos = new JoystickButton(oi.gunnerController, XboxController.Button.kY.value);
+        Trigger coralIn = new Trigger(() -> oi.gunnerController.getRightTriggerAxis() > 0.1);
+        Trigger coralOut = new Trigger(() -> oi.gunnerController.getLeftTriggerAxis() > 0.1);
+        Trigger alegaIn = new JoystickButton(oi.gunnerController, XboxController.Button.kRightBumper.value);
+        Trigger alegaOut = new JoystickButton(oi.gunnerController, XboxController.Button.kLeftBumper.value);
 
         // When gyroreset pressed reset the swerve drive gyros
         gyroReset.onTrue(new InstantCommand(() -> {
             swerveDrive.resetGyro();
         }));
+
+        rest.onTrue(lift.moveToSetpoint(Constants.LiftConstants.level0)
+                .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotRest)));
+
+
+        coralIn.whileTrue(intake.intakeCoralIn());
+        coralOut.whileTrue(intake.intakeCoralOut());
+
+        alegaIn.whileTrue(intake.intakeAlgea());
+        alegaOut.whileTrue(intake.outtakeAlega());
+
+        alegaOut.and(alegaIn.whileFalse(intake.restAlega()));
+        
+        level1.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotScore).onlyIf(intake::notHasAlgea)
+                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level1)));
+        level2.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotScore).onlyIf(intake::notHasAlgea)
+                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level2)));
+        intakePos.onTrue(lift.moveToSetpoint(Constants.LiftConstants.liftIntake).andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake)));
     }
 
     // Auto Code
     public Command getAutonomousCommand() {
         return null;
-        //return new PathPlannerAuto("2025Auto");
+        // return new PathPlannerAuto("2025Auto");
     }
 }
