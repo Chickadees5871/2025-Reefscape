@@ -20,6 +20,7 @@ public class Intake extends SubsystemBase {
     private double ballPower = 0.0;
 
     private boolean hasAlgea = false;
+    private boolean hasCoral = false;
     
     public Intake(){
         intakeMotor1 = new SparkMax(Constants.LiftConstants.algeIntake1CanId, MotorType.kBrushless);
@@ -41,11 +42,13 @@ public class Intake extends SubsystemBase {
     }
 
     private void intakeCoral(){
-        rodPower = 0.5;
+        rodPower = -0.5;
+        hasCoral = true;
     }
 
     private void outtakeCoral(){
-        rodPower = -0.5;
+        rodPower = 0.5;
+        hasCoral = false;
     }
 
     private void noCoral(){
@@ -88,5 +91,9 @@ public class Intake extends SubsystemBase {
 
     public boolean notHasAlgea() {
         return !hasAlgea;
+    }
+
+    public boolean hasCoral() {
+        return hasCoral;
     }
 }
