@@ -46,8 +46,8 @@ public class Intake extends SubsystemBase {
         hasCoral = true;
     }
 
-    private void outtakeCoral(){
-        rodPower = 0.5;
+    private void outtakeCoral(boolean atL1){
+        rodPower = atL1 ? 0.3 : 0.5;
         hasCoral = false;
     }
 
@@ -73,8 +73,8 @@ public class Intake extends SubsystemBase {
         return new InstantCommand(() -> this.intakeCoral()).repeatedly().finallyDo(() -> this.noCoral());
     }
 
-    public Command intakeCoralOut(){
-        return new InstantCommand(() -> this.outtakeCoral()).repeatedly().finallyDo(() -> this.noCoral());
+    public Command intakeCoralOut(boolean atL1){
+        return new InstantCommand(() -> this.outtakeCoral(atL1)).repeatedly().finallyDo(() -> this.noCoral());
     }
 
     public Command intakeAlgea(){

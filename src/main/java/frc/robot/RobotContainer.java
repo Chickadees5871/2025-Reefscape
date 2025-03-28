@@ -32,6 +32,9 @@ public class RobotContainer {
     public OperatorInterface oi;
     public AutoSystem autoSystem;
 
+    private boolean atL1 = false;
+
+
     public RobotContainer() {
         // Initialize the subsystems
         swerveDrive = new SwerveDrive();
@@ -60,6 +63,7 @@ public class RobotContainer {
         Trigger alegaIn = new JoystickButton(oi.gunnerController, XboxController.Button.kRightBumper.value);
         Trigger alegaOut = new JoystickButton(oi.gunnerController, XboxController.Button.kLeftBumper.value);
 
+
         // Coral 
         Trigger algea2 = new Trigger(() -> oi.gunnerController.getPOV() == 0);
         Trigger alega1 = new Trigger(() -> oi.gunnerController.getPOV() == 180);
@@ -73,17 +77,17 @@ public class RobotContainer {
                 .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotRest)));
 
         coralIn.whileTrue(intake.intakeCoralIn());
-        coralOut.whileTrue(intake.intakeCoralOut());
+        coralOut.whileTrue(intake.intakeCoralOut(atL1));
 
         alegaIn.whileTrue(intake.intakeAlgea());
         alegaOut.whileTrue(intake.outtakeAlega());
 
         level1.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotScore).onlyIf(intake::notHasAlgea).withTimeout(1)
-                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level1)));
+                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level1)).alongWith(new InstantCommand(() -> {atL1 = true;})));
         level2.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotScore).onlyIf(intake::notHasAlgea).withTimeout(1)
-                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level2)));
+                .andThen(lift.moveToSetpoint(Constants.LiftConstants.level2)).alongWith(new InstantCommand(() -> {atL1 = false;})));
         intakePos.onTrue(lift.moveToSetpoint(Constants.LiftConstants.liftIntake)
-                .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake)));
+                .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake)).alongWith(new InstantCommand(() -> {atL1 = false;})));
 
         alega1.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake).andThen(lift.moveToSetpoint(Constants.LiftConstants.level1_5)));
         algea2.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake).andThen(lift.moveToSetpoint(Constants.LiftConstants.level2_5)));
