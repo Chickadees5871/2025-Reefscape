@@ -41,9 +41,8 @@ public class RobotContainer {
         intake = new Intake();
         lift = new Lift();
         pivot = new Pivot(intake);
-        // autoSystem = new AutoSystem(swerveDrive);
-        oi = new OperatorInterface();
-
+        vision = new Vision();
+        oi = new OperatorInterface(vision);
         driveCommand = new DriveCommand(oi, swerveDrive);
 
         lift.setHomeState();
