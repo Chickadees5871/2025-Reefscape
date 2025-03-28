@@ -70,6 +70,17 @@ public class SwerveDrive extends SubsystemBase {
         
     }
 
+    public void acceptAuto(ChassisSpeeds fieldCentricChassisSpeeds) {
+        ChassisSpeeds chassis = ChassisSpeeds.fromRobotRelativeSpeeds(fieldCentricChassisSpeeds.times(-1),
+                this.getRotation2d());
+
+        SwerveModuleState[] states = Constants.DriveConstants.kDriveKinematics.toSwerveModuleStates(chassis);
+        for (int i = 0; i < 4; i++) {
+            modules[i].acceptMotion(states[i]);
+        }
+        
+    }
+
     public void resetGyro() {
         gyro.reset();
     }

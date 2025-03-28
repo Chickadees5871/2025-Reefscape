@@ -8,11 +8,14 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers.PoseEstimate;
@@ -27,6 +30,8 @@ public class Odometry extends SubsystemBase {
     //
     private final StructPublisher<Pose2d> poseOdoPublisher = NetworkTableInstance.getDefault().getStructTopic("Pose_Odo", Pose2d.struct).publish();
     private final StructPublisher<Pose2d> poseVibPublisher = NetworkTableInstance.getDefault().getStructTopic("Pose_Vis", Pose2d.struct).publish();
+
+    private final Field2d field2d = new Field2d();
 
 
     public Odometry(SwerveDrive swerveDrive, Vision vision) {
@@ -51,26 +56,21 @@ public class Odometry extends SubsystemBase {
                 this::getPose2d,
                 this::resetPose,
                 swerveDrive::getChassisSpeeds,
-                (speeds, feedforwards) -> swerveDrive.accept(speeds),
+                (speeds, feedforwards) -> swerveDrive.acceptAuto(speeds),
                 new PPHolonomicDriveController(
                         new PIDConstants(0.005, 0.00, 0.00),
                         new PIDConstants(0.005, 0.00, 0.00)),
                 config,
-                () -> {
-
-                    var alliance = DriverStation.getAlliance();
-                    if (alliance.isPresent()) {
-                        return alliance.get() == DriverStation.Alliance.Red;
-                    }
-                    return false;
-                },
+                this::getAlliance,
                 this);
     }
 
     @Override
     public void periodic() {
-        pose = poseEst.update(swerveDrive.getRotation2d(), swerveDrive.getPositions());
+        pose = poseEst.update(swerveDrive.getRotation2d().plus(getAlliance() ? new Rotation2d() : Rotation2d.fromDegrees(180)), swerveDrive.getPositions());
         poseOdoPublisher.set(pose);
+        field2d.setRobotPose(pose);
+        SmartDashboard.putData(field2d);
         updatePoseEstimatorWithVisonBotPose();
     }
 
@@ -110,6 +110,15 @@ public class Odometry extends SubsystemBase {
     }
 
     public void resetPose(Pose2d val) {
+        poseEst.resetPose(val);
         pose = val;
+    }
+
+    private boolean getAlliance() {
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isPresent()) {
+            return alliance.get() == DriverStation.Alliance.Red;
+        }
+        return false;
     }
 }

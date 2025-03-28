@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.event.EventLoop;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -52,6 +53,7 @@ public class RobotContainer {
         driveCommand = new DriveCommand(oi, swerveDrive);
 
         autoChooser = AutoBuilder.buildAutoChooser();
+
 
         lift.setHomeState();
 
@@ -95,8 +97,7 @@ public class RobotContainer {
                 .andThen(lift.moveToSetpoint(Constants.LiftConstants.level1)).alongWith(new InstantCommand(() -> {atL1 = true;})));
         level2.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotScore).onlyIf(intake::notHasAlgea).withTimeout(1)
                 .andThen(lift.moveToSetpoint(Constants.LiftConstants.level2)).alongWith(new InstantCommand(() -> {atL1 = false;})));
-        intakePos.onTrue(lift.moveToSetpoint(Constants.LiftConstants.liftIntake)
-                .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake)).alongWith(new InstantCommand(() -> {atL1 = false;})));
+        intakePos.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake).andThen(lift.moveToSetpoint(Constants.LiftConstants.liftIntake)).alongWith(new InstantCommand(() -> {atL1 = false;})));
 
         alega1.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake).andThen(lift.moveToSetpoint(Constants.LiftConstants.level1_5)));
         algea2.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake).andThen(lift.moveToSetpoint(Constants.LiftConstants.level2_5)));
@@ -105,11 +106,11 @@ public class RobotContainer {
 
     // Auto Code
     public Command getAutonomousCommand() {
-        return new InstantCommand(() -> swerveDrive.resetGyro())
-                .andThen(new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(-2.0, 0.0, 0.0))).repeatedly())
-                .withTimeout(0.95)
-                .andThen(new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(0.0, 0.0, 0.0))));
+        // return new InstantCommand(() -> swerveDrive.resetGyro())
+        //         .andThen(new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(-2.0, 0.0, 0.0))).repeatedly())
+        //         .withTimeout(0.95)
+        //         .andThen(new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(0.0, 0.0, 0.0))));
         
-        //return new PathPlannerAuto("2025Auto");
+        return autoChooser.getSelected();
     }
 }

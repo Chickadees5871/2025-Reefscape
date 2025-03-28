@@ -20,7 +20,7 @@ public class Pivot extends SubsystemBase {
     private double pivotPower = 0.0;
 
     private final double kFF = 0.45;
-    private final double kFFCoral = 0.65;
+    private final double kFFCoral = 0.55;
     
     public Pivot(Intake intake){
         this.intake = intake;

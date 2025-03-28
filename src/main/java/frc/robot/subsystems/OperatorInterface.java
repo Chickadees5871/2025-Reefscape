@@ -38,7 +38,7 @@ public class OperatorInterface extends SubsystemBase {
 
         SmartDashboard.putString("Chasis Speed", xSpeed + ", " + ySpeed + ", " + zSpeed);
 
-        if(driveController.getXButton()){
+        if(driveController.getLeftBumperButton()){
             ySpeed *= 0.2;
             xSpeed *= 0.2;
             zSpeed *= 0.2;
