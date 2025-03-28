@@ -73,13 +73,15 @@ public final class Constants {
         public static final int pivotMotor = 30;
 
         public static final double pivotRest = 0.0;
-        public static final double pivotScore = -0.22;
-        public static final double pivotIntake = -0.12;
+        public static final double pivotScore = -0.32;
+        public static final double pivotIntake = -0.17;
 
         public static final double level0 = 0.0;
-        public static final double liftIntake = 15.0;
+        public static final double liftIntake = 12.0;
         public static final double level1 = 20.0;
+        public static final double level1_5 = 30.0;
         public static final double level2 = 50.0;
+        public static final double level2_5 = 65.0;
     }
 
     public static final class ModuleConstants {

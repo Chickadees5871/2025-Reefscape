@@ -8,6 +8,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -59,6 +60,10 @@ public class RobotContainer {
         Trigger alegaIn = new JoystickButton(oi.gunnerController, XboxController.Button.kRightBumper.value);
         Trigger alegaOut = new JoystickButton(oi.gunnerController, XboxController.Button.kLeftBumper.value);
 
+        // Coral 
+        Trigger algea2 = new Trigger(() -> oi.gunnerController.getPOV() == 0);
+        Trigger alega1 = new Trigger(() -> oi.gunnerController.getPOV() == 180);
+        
         // When gyroreset pressed reset the swerve drive gyros
         gyroReset.onTrue(new InstantCommand(() -> {
             swerveDrive.resetGyro();
@@ -79,12 +84,17 @@ public class RobotContainer {
                 .andThen(lift.moveToSetpoint(Constants.LiftConstants.level2)));
         intakePos.onTrue(lift.moveToSetpoint(Constants.LiftConstants.liftIntake)
                 .andThen(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake)));
+
+        alega1.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake).andThen(lift.moveToSetpoint(Constants.LiftConstants.level1_5)));
+        algea2.onTrue(pivot.pivotToPoint(Constants.LiftConstants.pivotIntake).andThen(lift.moveToSetpoint(Constants.LiftConstants.level2_5)));
+
     }
 
     // Auto Code
     public Command getAutonomousCommand() {
-        return new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(-1.0, 0.0, 0.0))).repeatedly()
-                .withTimeout(0.75)
+        return new InstantCommand(() -> swerveDrive.resetGyro())
+                .andThen(new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(-2.0, 0.0, 0.0))).repeatedly())
+                .withTimeout(0.95)
                 .andThen(new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(0.0, 0.0, 0.0))));
         // return new PathPlannerAuto("2025Auto");
     }

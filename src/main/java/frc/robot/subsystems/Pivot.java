@@ -20,11 +20,11 @@ public class Pivot extends SubsystemBase {
     private double pivotPower = 0.0;
 
     private final double kFF = 0.45;
-    private final double kFFCoral = 0.85;
+    private final double kFFCoral = 0.65;
     
     public Pivot(Intake intake){
         this.intake = intake;
-        pivotController = new PIDController(0.55, 0, 0.00);
+        pivotController = new PIDController(0.45, 0, 0.00);
         pivotController.setTolerance(0.05);
         
         pivotMotor = new SparkMax(Constants.LiftConstants.pivotMotor, MotorType.kBrushless); 

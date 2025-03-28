@@ -20,7 +20,7 @@ public class Intake extends SubsystemBase {
     private double ballPower = 0.0;
 
     private boolean hasAlgea = false;
-    private boolean hasCoral = false;
+    private boolean hasCoral = true;
     
     public Intake(){
         intakeMotor1 = new SparkMax(Constants.LiftConstants.algeIntake1CanId, MotorType.kBrushless);
@@ -78,7 +78,7 @@ public class Intake extends SubsystemBase {
     }
 
     public Command intakeAlgea(){
-        return new InstantCommand(() -> this.intakeBall());
+        return new InstantCommand(() -> this.intakeBall()).repeatedly().finallyDo(() -> this.restBall());
     }
 
     public Command restAlega(){
