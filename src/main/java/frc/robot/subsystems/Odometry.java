@@ -76,6 +76,7 @@ public class Odometry extends SubsystemBase {
 
     public void updatePoseEstimatorWithVisonBotPose(){
         PoseEstimate visionPose = vision.getRobotPose();
+        if (visionPose == null) return;
         poseVibPublisher.set(visionPose.pose);
 
         if(visionPose.pose.getX() == 0.0){

@@ -16,7 +16,8 @@ public class OperatorInterface extends SubsystemBase {
 
     public OperatorInterface(Vision vision) {
         this.vision = vision;
-        pidController = new PIDController(0.005, 0, 0);
+        pidController = new PIDController(0.75, 0, 0);
+        pidController.setTolerance(0.05);
         driveController = new XboxController(0);
         gunnerController = new XboxController(1);
     }
@@ -24,15 +25,24 @@ public class OperatorInterface extends SubsystemBase {
     public ChassisSpeeds getChassisSpeeds() {
         double ySpeed = deadzone(driveController.getLeftY(), .075);
         double xSpeed = deadzone(driveController.getLeftX(), .075);
-        double zSpeed;
+        double zSpeed = 0.0;
 
-        if (driveController.getRightBumperButtonPressed()) {
-            zSpeed = pidController.calculate(vision.getTagYaw(), 0);
+        if (driveController.getRightBumperButton()) {
+            if(vision.hasTargets()){
+                SmartDashboard.putNumber("Tag Yaw", vision.getLastTagYaw());
+                zSpeed = pidController.calculate(vision.getLastTagYaw(), 0);
+            }
         } else {
             zSpeed = deadzone(driveController.getRightX(), .075);
         }
 
         SmartDashboard.putString("Chasis Speed", xSpeed + ", " + ySpeed + ", " + zSpeed);
+
+        if(driveController.getXButton()){
+            ySpeed *= 0.2;
+            xSpeed *= 0.2;
+            zSpeed *= 0.2;
+        }
 
         return new ChassisSpeeds(-ySpeed * Constants.DriveConstants.kMaxSpeedMetersPerSecond,
                 -xSpeed * Constants.DriveConstants.kMaxSpeedMetersPerSecond,

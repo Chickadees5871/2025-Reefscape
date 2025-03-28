@@ -33,6 +33,8 @@ public class SwerveModule {
         this.anglePIDcontroller = new PIDController(Constants.PIDConstants.ModuleAngleConstants.kP, Constants.PIDConstants.ModuleAngleConstants.kI, Constants.PIDConstants.ModuleAngleConstants.kD);
         this.anglePIDcontroller.setTolerance(Constants.PIDConstants.ModuleAngleConstants.kT);
 
+        this.currentState = new SwerveModuleState(0, new Rotation2d(0));
+
         anglePIDcontroller.enableContinuousInput(0.0, 1.0);
     }
 

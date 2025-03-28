@@ -4,11 +4,15 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.event.EventLoop;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -34,18 +38,24 @@ public class RobotContainer {
 
     private boolean atL1 = false;
 
+    public final SendableChooser<Command> autoChooser;
+
 
     public RobotContainer() {
         // Initialize the subsystems
+        vision = new Vision();
         swerveDrive = new SwerveDrive(vision);
         intake = new Intake();
         lift = new Lift();
         pivot = new Pivot(intake);
-        vision = new Vision();
         oi = new OperatorInterface(vision);
         driveCommand = new DriveCommand(oi, swerveDrive);
 
+        autoChooser = AutoBuilder.buildAutoChooser();
+
         lift.setHomeState();
+
+        SmartDashboard.putData(autoChooser);
 
         // Sets Keybinds
         configureBindings();
@@ -99,6 +109,7 @@ public class RobotContainer {
                 .andThen(new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(-2.0, 0.0, 0.0))).repeatedly())
                 .withTimeout(0.95)
                 .andThen(new InstantCommand(() -> swerveDrive.accept(new ChassisSpeeds(0.0, 0.0, 0.0))));
-        // return new PathPlannerAuto("2025Auto");
+        
+        //return new PathPlannerAuto("2025Auto");
     }
 }
