@@ -19,9 +19,9 @@ public class SwerveDrive extends SubsystemBase {
     private SwerveModule[] modules;
 
     private Pigeon2 gyro;
-    private final SwerveDrivePoseEstimator poseEst;
 
-    private Pose2d pose;
+    private Odometry odometry;
+    
 
     public SwerveDrive() {
         modules = new SwerveModule[4];
@@ -50,17 +50,13 @@ public class SwerveDrive extends SubsystemBase {
         gyro = new Pigeon2(41);
 
         // Init pose
-        poseEst = new SwerveDrivePoseEstimator(
-                Constants.DriveConstants.kDriveKinematics,
-                gyro.getRotation2d(),
-                getPosisions(),
-                new Pose2d());
+        odometry = new Odometry(this);
+        
     }
 
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Rotation", gyro.getRotation2d().getDegrees());
-        pose = poseEst.update(gyro.getRotation2d(), getPosisions());
     }
 
     public void accept(ChassisSpeeds fieldCentricChassisSpeeds) {
@@ -77,13 +73,6 @@ public class SwerveDrive extends SubsystemBase {
         gyro.reset();
     }
 
-    public Pose2d getPose2d() {
-        return pose;
-    }
-
-    public void resetPose(Pose2d val) {
-        pose = val;
-    }
 
     public Rotation2d getRotation2d() {
         return Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble() + 180);
@@ -100,7 +89,7 @@ public class SwerveDrive extends SubsystemBase {
         };
     }
 
-    public SwerveModulePosition[] getPosisions() {
+    public SwerveModulePosition[] getPositions() {
         return new SwerveModulePosition[] {
             modules[0].getPosition(), modules[1].getPosition(),
             modules[2].getPosition(), modules[3].getPosition() 

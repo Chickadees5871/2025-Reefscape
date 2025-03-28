@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.commands.DriveCommand;
-import frc.robot.subsystems.AutoSystem;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Lift;
 import frc.robot.subsystems.OperatorInterface;
@@ -30,7 +29,6 @@ public class RobotContainer {
     public Lift lift;
     public Pivot pivot;
     public OperatorInterface oi;
-    public AutoSystem autoSystem;
 
     private boolean atL1 = false;
 
