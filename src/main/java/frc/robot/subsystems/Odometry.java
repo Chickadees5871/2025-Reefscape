@@ -25,7 +25,7 @@ public class Odometry extends SubsystemBase {
     //private final StructPublisher<Pose2d> poseVibPublisher = NetworkTableInstance.getDefault().getStructTopic("Pose_Vis", Pose2d.struct).publish();
 
 
-    public Odometry(SwerveDrive swerveDrive) {
+    public Odometry(SwerveDrive swerveDrive, Vision vision) {
         this.swerveDrive = swerveDrive;
         poseEst = new SwerveDrivePoseEstimator(
                 Constants.DriveConstants.kDriveKinematics,

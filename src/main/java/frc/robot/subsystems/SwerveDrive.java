@@ -23,7 +23,7 @@ public class SwerveDrive extends SubsystemBase {
     private Odometry odometry;
     
 
-    public SwerveDrive() {
+    public SwerveDrive(Vision vision) {
         modules = new SwerveModule[4];
 
         // fl
@@ -50,7 +50,7 @@ public class SwerveDrive extends SubsystemBase {
         gyro = new Pigeon2(41);
 
         // Init pose
-        odometry = new Odometry(this);
+        odometry = new Odometry(this, vision);
         
     }
 

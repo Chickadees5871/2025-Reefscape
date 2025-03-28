@@ -20,6 +20,7 @@ import frc.robot.subsystems.Lift;
 import frc.robot.subsystems.OperatorInterface;
 import frc.robot.subsystems.Pivot;
 import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.Vision;
 
 public class RobotContainer {
     public final DriveCommand driveCommand;
@@ -28,6 +29,7 @@ public class RobotContainer {
     public Intake intake;
     public Lift lift;
     public Pivot pivot;
+    public Vision vision;
     public OperatorInterface oi;
 
     private boolean atL1 = false;
@@ -35,7 +37,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         // Initialize the subsystems
-        swerveDrive = new SwerveDrive();
+        swerveDrive = new SwerveDrive(vision);
         intake = new Intake();
         lift = new Lift();
         pivot = new Pivot(intake);
